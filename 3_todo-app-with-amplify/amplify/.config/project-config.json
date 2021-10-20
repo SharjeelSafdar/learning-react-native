@@ -1,11 +1,11 @@
 {
-  "projectName": "todoAppReactNative",
+  "projectName": "3todoappwithamplify",
   "version": "3.1",
   "frontend": "javascript",
   "javascript": {
     "framework": "react-native",
     "config": {
-      "SourceDir": "./",
+      "SourceDir": "/",
       "DistributionDir": "/",
       "BuildCommand": "npm.cmd run-script build",
       "StartCommand": "npm.cmd run-script start"

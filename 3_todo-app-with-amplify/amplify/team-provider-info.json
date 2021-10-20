@@ -1,15 +1,15 @@
 {
   "dev": {
     "awscloudformation": {
-      "AuthRoleName": "amplify-todoappreactnative-dev-122911-authRole",
-      "UnauthRoleArn": "arn:aws:iam::731540390537:role/amplify-todoappreactnative-dev-122911-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::731540390537:role/amplify-todoappreactnative-dev-122911-authRole",
+      "AuthRoleName": "amplify-3todoappwithamplify-dev-130928-authRole",
+      "UnauthRoleArn": "arn:aws:iam::731540390537:role/amplify-3todoappwithamplify-dev-130928-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::731540390537:role/amplify-3todoappwithamplify-dev-130928-authRole",
       "Region": "us-east-2",
-      "DeploymentBucketName": "amplify-todoappreactnative-dev-122911-deployment",
-      "UnauthRoleName": "amplify-todoappreactnative-dev-122911-unauthRole",
-      "StackName": "amplify-todoappreactnative-dev-122911",
-      "StackId": "arn:aws:cloudformation:us-east-2:731540390537:stack/amplify-todoappreactnative-dev-122911/6e54c040-3177-11ec-80da-0a8b14bfe120",
-      "AmplifyAppId": "d8nsd78ikcfts"
+      "DeploymentBucketName": "amplify-3todoappwithamplify-dev-130928-deployment",
+      "UnauthRoleName": "amplify-3todoappwithamplify-dev-130928-unauthRole",
+      "StackName": "amplify-3todoappwithamplify-dev-130928",
+      "StackId": "arn:aws:cloudformation:us-east-2:731540390537:stack/amplify-3todoappwithamplify-dev-130928/0f2c5780-317d-11ec-a4a7-0a65b0228576",
+      "AmplifyAppId": "d343tuq673asa0"
     }
   }
 }
