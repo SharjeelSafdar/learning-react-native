@@ -2,6 +2,7 @@ import React from "react";
 import { NativeBaseProvider, extendTheme, Container } from "native-base";
 import Amplify from "aws-amplify";
 import awsConfig from "./aws-exports";
+const { withAuthenticator } = require("aws-amplify-react-native");
 
 import { Header, TodosList } from "./components";
 
@@ -16,7 +17,7 @@ const config = {
 // extend the theme
 export const theme = extendTheme({ config });
 
-export default function App() {
+function App() {
   return (
     <NativeBaseProvider theme={theme}>
       <Container
@@ -31,3 +32,5 @@ export default function App() {
     </NativeBaseProvider>
   );
 }
+
+export default withAuthenticator(App);
