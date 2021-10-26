@@ -21,6 +21,8 @@ import {
   NavigationContainer,
   useFocusEffect,
   useIsFocused,
+  LinkingOptions,
+  CompositeScreenProps,
 } from "@react-navigation/native";
 import {
   createNativeStackNavigator,
@@ -37,15 +39,32 @@ import {
 } from "@react-navigation/drawer";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<StackParamList>();
 const Tab = createBottomTabNavigator<BottomTabsParamList>();
-const Drawer = createDrawerNavigator<DrawersParamList>();
+const Drawer = createDrawerNavigator<DrawerParamList>();
+
+const prefix = Linking.createURL("/");
 
 export default function App() {
+  const linking: LinkingOptions<RootParamList> = {
+    prefixes: [prefix],
+    config: {
+      initialRouteName: "Home",
+      screens: {
+        Home: {
+          path: "",
+        },
+        Details: "Details",
+      },
+    },
+  };
+
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer linking={linking} fallback={<Text>Loading...</Text>}>
         <Stack.Navigator
           initialRouteName="Home"
           screenOptions={{
@@ -118,11 +137,7 @@ export default function App() {
   );
 }
 
-type RootStackParamList = StackNavigatorParamList &
-  BottomTabsParamList &
-  DrawersParamList;
-
-type StackNavigatorParamList = {
+type StackParamList = {
   Home?: {
     post: string;
   };
@@ -134,10 +149,45 @@ type StackNavigatorParamList = {
   Profile?: {
     name: string;
   };
-  TabsScreen?: undefined;
-  DrawerScreen?: undefined;
+  TabsScreen?: BottomTabScreenProps<BottomTabsParamList>;
+  DrawerScreen?: DrawerScreenProps<DrawerParamList>;
   Modal?: undefined;
 };
+
+type BottomTabsParamList = {
+  Feed?: undefined;
+  Messages?: undefined;
+  About?: undefined;
+};
+
+type DrawerParamList = {
+  DrawerScreen1?: undefined;
+  DrawerScreen2?: undefined;
+  DrawerScreen3?: undefined;
+};
+
+type RootParamList = StackParamList & BottomTabsParamList & DrawerParamList;
+
+type StackScreenPropsType<T extends keyof StackParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<StackParamList, T>,
+    CompositeScreenProps<
+      BottomTabScreenProps<BottomTabsParamList>,
+      DrawerScreenProps<DrawerParamList>
+    >
+  >;
+
+type TabsScreenPropsType<T extends keyof BottomTabsParamList> =
+  CompositeScreenProps<
+    BottomTabScreenProps<BottomTabsParamList, T>,
+    NativeStackScreenProps<StackParamList>
+  >;
+
+type DrawerScreenPropsType<T extends keyof DrawerParamList> =
+  CompositeScreenProps<
+    DrawerScreenProps<DrawerParamList, T>,
+    NativeStackScreenProps<StackParamList>
+  >;
 
 function LogoTitle() {
   return (
@@ -148,9 +198,7 @@ function LogoTitle() {
   );
 }
 
-const ModalScreen: FC<NativeStackScreenProps<RootStackParamList, "Modal">> = ({
-  navigation,
-}) => {
+const ModalScreen: FC<StackScreenPropsType<"Modal">> = ({ navigation }) => {
   return (
     <SafeAreaView
       style={[styles.container, { borderColor: "#f4511e", borderWidth: 3 }]}
@@ -161,7 +209,7 @@ const ModalScreen: FC<NativeStackScreenProps<RootStackParamList, "Modal">> = ({
   );
 };
 
-const HomeScreen: FC<NativeStackScreenProps<RootStackParamList, "Home">> = ({
+const HomeScreen: FC<StackScreenPropsType<"Home">> = ({
   navigation,
   route,
 }) => {
@@ -207,6 +255,16 @@ const HomeScreen: FC<NativeStackScreenProps<RootStackParamList, "Home">> = ({
       <Text>Post: {JSON.stringify(route.params?.post)}</Text>
       <View style={{ height: 20 }} />
       <Button
+        title="Call"
+        onPress={() => Linking.openURL("tel://+92123456789")}
+      />
+      <View style={{ height: 20 }} />
+      <Button
+        title="Google"
+        onPress={() => WebBrowser.openBrowserAsync("https://google.com")}
+      />
+      <View style={{ height: 20 }} />
+      <Button
         title="Go to Details"
         onPress={() =>
           navigation.navigate("Details", {
@@ -246,47 +304,49 @@ const HomeScreen: FC<NativeStackScreenProps<RootStackParamList, "Home">> = ({
   );
 };
 
-const DetailsScreen: FC<NativeStackScreenProps<RootStackParamList, "Details">> =
-  ({ navigation, route }) => {
-    const props = route.params;
-    return (
-      <View style={styles.container}>
-        <Text>Details Screen</Text>
-        <Text>itemId: {JSON.stringify(props?.itemId)}</Text>
-        <Text>otherParam: {JSON.stringify(props?.otherParam)}</Text>
-        <View style={{ height: 20 }} />
-        <Button title="Go to Home" onPress={() => navigation.push("Home")} />
-        <View style={{ height: 20 }} />
-        <Button
-          title="Go to Details...Push"
-          onPress={() =>
-            navigation.push("Details", {
-              itemId: Math.floor(Math.random() * 100),
-            })
-          }
-        />
-        <View style={{ height: 20 }} />
-        <Button
-          title="Go Back"
-          onPress={() => navigation.canGoBack() && navigation.goBack()}
-        />
-        <View style={{ height: 20 }} />
-        <Button
-          title="Go back to first screen in stack"
-          onPress={() => navigation.popToTop()}
-        />
-        <View style={{ height: 20 }} />
-        <Button
-          title="Update otherParam"
-          onPress={() => navigation.setParams({ otherParam: "Hello again" })}
-        />
-      </View>
-    );
-  };
+const DetailsScreen: FC<StackScreenPropsType<"Details">> = ({
+  navigation,
+  route,
+}) => {
+  const props = route.params;
+  return (
+    <View style={styles.container}>
+      <Text>Details Screen</Text>
+      <Text>itemId: {JSON.stringify(props?.itemId)}</Text>
+      <Text>otherParam: {JSON.stringify(props?.otherParam)}</Text>
+      <View style={{ height: 20 }} />
+      <Button title="Go to Home" onPress={() => navigation.push("Home")} />
+      <View style={{ height: 20 }} />
+      <Button
+        title="Go to Details...Push"
+        onPress={() =>
+          navigation.push("Details", {
+            itemId: Math.floor(Math.random() * 100),
+          })
+        }
+      />
+      <View style={{ height: 20 }} />
+      <Button
+        title="Go Back"
+        onPress={() => navigation.canGoBack() && navigation.goBack()}
+      />
+      <View style={{ height: 20 }} />
+      <Button
+        title="Go back to first screen in stack"
+        onPress={() => navigation.popToTop()}
+      />
+      <View style={{ height: 20 }} />
+      <Button
+        title="Update otherParam"
+        onPress={() => navigation.setParams({ otherParam: "Hello again" })}
+      />
+    </View>
+  );
+};
 
-const CreatePostScreen: FC<
-  NativeStackScreenProps<RootStackParamList, "CreatePost">
-> = ({ navigation }) => {
+const CreatePostScreen: FC<StackScreenPropsType<"CreatePost">> = ({
+  navigation,
+}) => {
   const [postText, setPostText] = useState("");
   const hasUnsavedChanges = Boolean(postText);
 
@@ -353,67 +413,57 @@ const CreatePostScreen: FC<
   );
 };
 
-const ProfileScreen: FC<NativeStackScreenProps<RootStackParamList, "Profile">> =
-  ({ navigation }) => {
-    return (
-      <View>
-        <Button title="Back" onPress={() => navigation.navigate("Home")} />
-        <View style={{ height: 20 }} />
-        <Button
-          title="Update Title"
-          onPress={() => navigation.setOptions({ title: "Updated!" })}
-        />
-      </View>
-    );
-  };
-
-type BottomTabsParamList = {
-  Feed?: undefined;
-  Messages?: undefined;
-  About?: undefined;
+const ProfileScreen: FC<StackScreenPropsType<"Profile">> = ({ navigation }) => {
+  return (
+    <View>
+      <Button title="Back" onPress={() => navigation.navigate("Home")} />
+      <View style={{ height: 20 }} />
+      <Button
+        title="Update Title"
+        onPress={() => navigation.setOptions({ title: "Updated!" })}
+      />
+    </View>
+  );
 };
 
-const TabsScreen: FC<NativeStackScreenProps<RootStackParamList, "TabsScreen">> =
-  () => {
-    return (
-      <Tab.Navigator
-        initialRouteName="Feed"
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName:
-              | "logo-flickr"
-              | "chatbox-ellipses"
-              | "information-circle-sharp";
-            iconName =
-              route.name === "Feed"
-                ? "logo-flickr"
-                : route.name === "Messages"
-                ? "chatbox-ellipses"
-                : "information-circle-sharp";
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-          tabBarActiveTintColor: "tomato",
-          tabBarInactiveTintColor: "gray",
-        })}
-      >
-        <Tab.Screen
-          name="Feed"
-          component={FeedScreen}
-          options={{ headerShown: false }}
-        />
-        <Tab.Screen
-          name="Messages"
-          component={MessagesScreen}
-          options={{ headerShown: false, tabBarBadge: 3 }}
-        />
-        <Tab.Screen name="About" component={AboutScreen} />
-      </Tab.Navigator>
-    );
-  };
+const TabsScreen: FC<StackScreenPropsType<"TabsScreen">> = () => {
+  return (
+    <Tab.Navigator
+      initialRouteName="Feed"
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName:
+            | "logo-flickr"
+            | "chatbox-ellipses"
+            | "information-circle-sharp";
+          iconName =
+            route.name === "Feed"
+              ? "logo-flickr"
+              : route.name === "Messages"
+              ? "chatbox-ellipses"
+              : "information-circle-sharp";
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: "tomato",
+        tabBarInactiveTintColor: "gray",
+      })}
+    >
+      <Tab.Screen
+        name="Feed"
+        component={FeedScreen}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Messages"
+        component={MessagesScreen}
+        options={{ headerShown: false, tabBarBadge: 3 }}
+      />
+      <Tab.Screen name="About" component={AboutScreen} />
+    </Tab.Navigator>
+  );
+};
 
-const FeedScreen: FC<BottomTabScreenProps<RootStackParamList, "Feed">> = ({
-  navigation,
-}) => {
+const FeedScreen: FC<TabsScreenPropsType<"Feed">> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text>Feed Screen</Text>
@@ -427,33 +477,23 @@ const FeedScreen: FC<BottomTabScreenProps<RootStackParamList, "Feed">> = ({
   );
 };
 
-const MessagesScreen: FC<BottomTabScreenProps<RootStackParamList, "Messages">> =
-  () => {
-    return (
-      <View style={[styles.container, { backgroundColor: "#6a51ae" }]}>
-        <Text style={{ color: "white" }}>Messages Screen</Text>
-      </View>
-    );
-  };
-
-const AboutScreen: FC<BottomTabScreenProps<RootStackParamList, "About">> =
-  () => {
-    return (
-      <View style={styles.container}>
-        <Text>About Screen</Text>
-      </View>
-    );
-  };
-
-type DrawersParamList = {
-  DrawerScreen1?: undefined;
-  DrawerScreen2?: undefined;
-  DrawerScreen3?: undefined;
+const MessagesScreen: FC<TabsScreenPropsType<"Messages">> = () => {
+  return (
+    <View style={[styles.container, { backgroundColor: "#6a51ae" }]}>
+      <Text style={{ color: "white" }}>Messages Screen</Text>
+    </View>
+  );
 };
 
-const DrawerScreen: FC<
-  NativeStackScreenProps<RootStackParamList, "DrawerScreen">
-> = () => {
+const AboutScreen: FC<TabsScreenPropsType<"About">> = () => {
+  return (
+    <View style={styles.container}>
+      <Text>About Screen</Text>
+    </View>
+  );
+};
+
+const DrawerScreen: FC<StackScreenPropsType<"DrawerScreen">> = () => {
   return (
     <Drawer.Navigator initialRouteName="DrawerScreen1">
       <Drawer.Screen
@@ -475,9 +515,9 @@ const DrawerScreen: FC<
   );
 };
 
-const DrawerScreen1: FC<
-  DrawerScreenProps<RootStackParamList, "DrawerScreen1">
-> = ({ navigation }) => {
+const DrawerScreen1: FC<DrawerScreenPropsType<"DrawerScreen1">> = ({
+  navigation,
+}) => {
   const drawerStatus = useDrawerStatus();
   console.log({ drawerStatus });
 
@@ -495,9 +535,9 @@ const DrawerScreen1: FC<
   );
 };
 
-const DrawerScreen2: FC<
-  DrawerScreenProps<RootStackParamList, "DrawerScreen2">
-> = ({ navigation }) => {
+const DrawerScreen2: FC<DrawerScreenPropsType<"DrawerScreen2">> = ({
+  navigation,
+}) => {
   return (
     <View style={styles.container}>
       <Text>Drawer Screen 2</Text>
@@ -506,9 +546,9 @@ const DrawerScreen2: FC<
   );
 };
 
-const DrawerScreen3: FC<
-  DrawerScreenProps<RootStackParamList, "DrawerScreen3">
-> = ({ navigation }) => {
+const DrawerScreen3: FC<DrawerScreenPropsType<"DrawerScreen3">> = ({
+  navigation,
+}) => {
   return (
     <View style={styles.container}>
       <Text>Drawer Screen 3</Text>
